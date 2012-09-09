@@ -129,9 +129,6 @@ class MailArchiveAnalyzer:
 
                 if header_content:
                     header_content = [ self.__decode(h, charset) for h in header_content ]
-
-                    # Check spam obscuring
-                    header_content = self.__check_spam_obscuring(header_content)
                     filtered_message[header] = getaddresses(header_content)
                 else:
                     filtered_message[header] = None  #[('','')]
@@ -227,20 +224,6 @@ class MailArchiveAnalyzer:
         tz_secs = parsed_date[-1] or 0
 
         return msgdate, tz_secs
-
-    def __check_spam_obscuring(self,field):
-
-        # Add more patterns here
-        obscurers = [" at ","_at_"," en "]
-
-        if not field:
-            return field
-        
-        field = field[0]
-
-        for pattern in obscurers:
-            if field.find(pattern):
-                return [field.replace(pattern,"@")]
 
     def __decode(self, s, charset='latin-1', sep=u' '):
         """ Decode a header.  A header can be composed by strings with

@@ -61,4 +61,18 @@ class strict_mbox(mailbox.mbox):
     def _strict_isrealfromline(self, line):
         if not self._regexp:
             self._regexp = re.compile(self._fromlinepattern)
-        return self._regexp.match(line)
+        return self._regexp.match(self._check_spam_obscuring(line))
+
+    # Check spam obscuring
+    def _check_spam_obscuring(self,field):
+
+        # Add more patterns here
+        obscurers = [" at ","_at_"," en "]
+
+        if not field:
+            return field
+
+        for pattern in obscurers:
+            field = field.replace(pattern, '@')
+
+        return field
