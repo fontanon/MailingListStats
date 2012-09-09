@@ -28,6 +28,8 @@ import mailbox
 import os
 import re
 
+from pymlstats.utils import EMAIL_OBFUSCATION_PATTERNS
+
 class strict_mbox(mailbox.mbox):
     _fromlinepattern = (r'From \s*[^\s]+\s+\w\w\w\s+\w\w\w\s+\d?\d\s+'
                         r'\d?\d:\d\d(:\d\d)?(\s+[^\s]+)?\s+\d\d\d\d\s*'
@@ -65,14 +67,10 @@ class strict_mbox(mailbox.mbox):
 
     # Check spam obscuring
     def _check_spam_obscuring(self,field):
-
-        # Add more patterns here
-        obscurers = [" at ","_at_"," en "]
-
         if not field:
             return field
 
-        for pattern in obscurers:
-            field = field.replace(pattern, '@')
-
+        for pattern in EMAIL_OBFUSCATION_PATTERNS:
+            if field.find(pattern) != -1: #Pattern found
+                return field.replace(pattern, '@')
         return field

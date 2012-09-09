@@ -36,7 +36,9 @@ from email.Iterators import typed_subpart_iterator
 import datetime
 import hashlib
 import sys
+
 from pymlstats.strictmbox import strict_mbox
+from pymlstats.utils import EMAIL_OBFUSCATION_PATTERNS
 
 def to_unicode (string, charset='latin-1'):
     """Converts a string type to an object of unicode type.
@@ -129,6 +131,9 @@ class MailArchiveAnalyzer:
 
                 if header_content:
                     header_content = [ self.__decode(h, charset) for h in header_content ]
+
+                    # Check spam obscuring
+                    header_content = self.__check_spam_obscuring(header_content)
                     filtered_message[header] = getaddresses(header_content)
                 else:
                     filtered_message[header] = None  #[('','')]
@@ -224,6 +229,17 @@ class MailArchiveAnalyzer:
         tz_secs = parsed_date[-1] or 0
 
         return msgdate, tz_secs
+
+    def __check_spam_obscuring(self,field):
+        if not field:
+            return field
+
+        field = field[0]
+
+        for pattern in EMAIL_OBFUSCATION_PATTERNS:
+            if field.find(pattern) != -1: #Pattern found
+                return [field.replace(pattern, '@')]
+        return [field]
 
     def __decode(self, s, charset='latin-1', sep=u' '):
         """ Decode a header.  A header can be composed by strings with
